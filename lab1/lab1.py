@@ -102,7 +102,8 @@ def custom_dfs(n):
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
     solutions = []
-    for n in [5, 10, 20, 100, 500, 1000]:
+    #for n in [5, 10, 20, 100, 500, 1000]:
+    for n in [5, 10, 20]:        
         solutions.append(custom_dfs(n))
     for s in solutions:
         print(f'\nn: {s.n}\ncost: {s.cost} -> bloat: {s.bloat}%\nsolution: {s.solution}\nvisited nodes: {s.amount_visited_nodes}')

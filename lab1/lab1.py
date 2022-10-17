@@ -7,7 +7,7 @@ CONTINUE = 1
 ROLLBACK = 0
 
 DEBUG = 1
-HEURISTICS = 0
+DEBUG2 = 0
 
 def problem(N, seed=None):
     """generates a list of sublists containing a variable number of integers from 0 to N-1"""
@@ -44,17 +44,21 @@ class Solution:
 def search(n, state, current_solution, index, list_, visited_nodes, depth):
     """recursive search for solution"""
     numbers_occurrences = state.numbers_occurrences.copy()
-    for i in list_[index]:
-        numbers_occurrences[i] += 1
-    new_state = State([index] if len(state.chosen_sublists) == 0 else state.chosen_sublists + [index], numbers_occurrences, visited_nodes)
-    command1 = check_state(n, new_state, current_solution, list_, depth)
-    if command1 == CONTINUE:
-        current_solution, command2 = check_goal(new_state, current_solution, n)
-        visited_nodes += 1
-        new_state.amount_visited_nodes = visited_nodes
-        if command2 == CONTINUE:
-            for i in range(1, len(list_) - index):
-                current_solution, visited_nodes = search(n, new_state, current_solution, index + i, list_, visited_nodes, depth + 1)
+    if index > -1:
+        for i in list_[index]:
+            numbers_occurrences[i] += 1
+        new_state = State([index] if len(state.chosen_sublists) == 0 else state.chosen_sublists + [index], numbers_occurrences, visited_nodes)
+        command1 = check_state(n, new_state, current_solution, list_, depth)
+    else:
+        new_state = state
+    if index == -1 or command1 == CONTINUE:
+        if index > -1:
+            current_solution, command2 = check_goal(new_state, current_solution, n)
+            visited_nodes += 1
+            new_state.amount_visited_nodes = visited_nodes
+        if index == -1 or command2 == CONTINUE:
+            for i in range(index + 1, len(list_)):
+                current_solution, visited_nodes = search(n, new_state, current_solution, i, list_, visited_nodes, depth + 1)
     return current_solution, visited_nodes
 
 def check_goal(state, current_solution, n):
@@ -67,15 +71,22 @@ def check_goal(state, current_solution, n):
         return current_solution, CONTINUE
 
 def check_state(n, state, current_solution, list_, depth):
+    bloat = 100 * (state.cost - n)/n
     """checks if new state is useful"""
     # incomplete solution + cost already higher than the optimal one
     if all(state.numbers_occurrences) == False and sum(state.numbers_occurrences) >= current_solution.cost:
+        if DEBUG2:
+            logging.info(f'(n: {n}, rollback #1: {state.chosen_sublists}')
         return ROLLBACK
     # last sublist added was useless (cost increase without getting closer to the solution)
     elif all(state.numbers_occurrences[v] > 1 for v in list_[state.chosen_sublists[-1]]):
+        if DEBUG2:
+            logging.info(f'(n: {n}, rollback #2: {state.chosen_sublists}')
         return ROLLBACK
-    # bound in order to speed up computations
-    elif depth > 10 and n > 20:
+    # bound regarding depth and bloat in order to speed up computations - applied only in case of large Ns
+    elif (depth > 8 or bloat > 100) and n > 20:
+        if DEBUG2:
+            logging.info(f'(n: {n}, rollback #3: {state.chosen_sublists}')
         return ROLLBACK
     else:
         return CONTINUE
@@ -85,7 +96,7 @@ def custom_dfs(n):
     list_ = problem(n, seed=42)
     solution = Solution(n, sum(len(i) for i in list_), None, 0)
     initial_state = State([], np.zeros(n), 0)
-    solution, _ = search(n, initial_state, solution, 0, list_, 0, 0)
+    solution, _ = search(n, initial_state, solution, -1, list_, 0, 0)
     return solution
     
 if __name__ == '__main__':

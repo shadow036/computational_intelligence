@@ -1,4 +1,4 @@
 exercises/*
 notes.odt
 .spyproject/*
-lab*/__pycache__/*
+*/__pycache__/*

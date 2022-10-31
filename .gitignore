@@ -2,3 +2,4 @@ exercises/*
 notes.odt
 .spyproject/*
 */__pycache__/*
+*/.spyproject/*

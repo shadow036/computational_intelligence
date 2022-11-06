@@ -26,11 +26,12 @@ def mutation(c_solutions, mu, flag, input_):
             if m == 1:
                 # switch
                 c_solutions[index] = input_[choice(range(len(input_)))]
-            elif m == [2, 3]:    
+            elif m == [2, 3, 4]:    
                 # add
                 c_solutions[index] = [c_solutions[index], input_[choice(range(len(input_)))]]
         else:
-            for index2 in range(len(c_solutions[index])):
+            len_ = len(c_solutions[index])
+            for index2 in range(len_):
                 m = choice(range(INVERSE_MUTATION_RATE))
                 c_solutions[index] = exploration_vs_exploitation(m, flag, c_solutions, index, index2, input_)
             c_solutions[index] = [e for e in c_solutions[index] if e != -1]

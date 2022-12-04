@@ -1,7 +1,9 @@
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from game_utilities import Nim, get_info
 from strategies.strategy_utilities import random
-from strategies.strategy_utilities import PACIFIST, VIGILANT, AGGRESSIVE
-from strategies.strategy_utilities import analyze_situation, set_new_situation
+from strategies.strategy_utilities import PACIFIST, VIGILANT, AGGRESSIVE, ROWS, OBJECTS
+from strategies.strategy_utilities import analyze_situation, killer_instinct
 from game_utilities import np
 from math import ceil
 
@@ -30,24 +32,24 @@ def gabriele(state: Nim) -> tuple:
 
 
 def spreader(state: Nim) -> tuple:
-    # takes 1 objects from all rows, it doesn't care of clearing rows
+    """takes 1 objects from all rows, it doesn't care of clearing rows unless it is forced to or if it is the move to
+    win the game"""
     choices = [i for i in range(state.return_nrows) if state.return_rows[i] == state.return_original_rows[i]]
     if len(choices) == 0:
         choices = [np.argmax(state.return_rows)]
-    t_row = random.choices(choices)[0]
-    t_amount = random.choices([0.1 * j for j in range(6)])[0]
-    return t_row, ceil(t_amount * state.return_rows[t_row])
+    t_row = random.choice(choices)
+    return t_row, state.return_rows[t_row] if killer_instinct(state) else 1
 
 
 def aggressive_spreader(state: Nim) -> tuple:
-    """same as before but it takes (all - 1) objects form a row each turn. It never clears them during its first visit
-    on that row unless necessary"""
+    """same as before but it normally takes (all - 1) objects form a row each turn unless forced to or it is the move
+    to win the game (in those cases it clears the entire row)"""
     choices = [i for i in range(state.return_nrows) if state.return_rows[i] == state.return_original_rows[i]]
     if len(choices) == 0:
         choices = [np.argmax(state.return_rows)]
-    t_row = random.choices(choices)[0]
-    t_amount = (max(1, state.return_rows[t_row] - 1))
-    return t_row, t_amount
+    t_row = random.choice(choices)
+    t_amount = max(1, state.return_rows[t_row] - 1)
+    return t_row, state.return_rows[t_row] if killer_instinct(state) else t_amount
 
 
 def nimsum_lil_brother(state: Nim) -> tuple:
@@ -60,55 +62,70 @@ def nimsum_lil_brother(state: Nim) -> tuple:
     choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]  # setup
     if len(choices) == 0:
         choices = [i for i in range(state.return_nrows) if state.return_rows[i] == 1]
-    t_row = random.choices(choices)[0]
+    t_row = random.choice(choices)
     t_amount = max(1, state.return_rows[t_row] - 1)
     return t_row, t_amount
 
 
 def hel(state):
     """each turn it either takes 1 object from a row having more than 1 objects or completely clears one row"""
-    personality = random.choices([PACIFIST, AGGRESSIVE])
-    if personality == PACIFIST:
-        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]
-    else:
+    killer_instinct = get_info(state)["remaining rows"] == 1 and sum(state.return_rows) > 1
+    personality = AGGRESSIVE if killer_instinct else random.choice([PACIFIST, AGGRESSIVE])
+    choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]
+    if personality == AGGRESSIVE or len(choices) == 0:
         choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 0]
-    t_row = random.choices(choices)[0]
+    t_row = random.choice(choices)
     return t_row, 1 if personality == PACIFIST else state.return_rows[t_row]
 
 
 def hel_challenger(state):
     """same as before but during its aggressive stance, it always clears the row with the most objects"""
-    personality = random.choices([PACIFIST, AGGRESSIVE])
-    if personality == PACIFIST:
-        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]
-    else:
+    personality = AGGRESSIVE if killer_instinct(state) else random.choice([PACIFIST, AGGRESSIVE])
+    choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]
+    if personality == PACIFIST and len(choices) == 0:
+        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 0]
+    elif personality == AGGRESSIVE:
         choices = [np.argmax(state.return_rows)]
-    t_row = random.choices(choices)[0]
+    t_row = random.choice(choices)
     return t_row, 1 if personality == PACIFIST else state.return_rows[t_row]
 
 
 def hel_triphase(state):
     """same as the original "hel" strategy but in this case it also has a third state in which it removes a random
     amount of objects in such a way that it never clears a row"""
-    personality = random.choices([PACIFIST, VIGILANT, AGGRESSIVE])
-    if personality == PACIFIST or personality == VIGILANT:
-        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]  # doesn't clear a row for sure
-    else:
-        choices = [np.argmax(state.return_rows)]
-    t_row = random.choices(choices)[0]
+    personality = AGGRESSIVE if killer_instinct(state) else random.choice([PACIFIST, VIGILANT, AGGRESSIVE])
+    choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]
+    if personality == AGGRESSIVE or len(choices) == 0:
+        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 0]
+    t_row = random.choice(choices)
     if personality == PACIFIST:
         return t_row, 1
     elif personality == VIGILANT:
-        t_amount = random.choices([i/10 for i in range(1, 10)])
-        return t_row, min(ceil(t_amount * state.return_rows[t_row]), state.return_rows[t_row] - 1)
-        # between pacifist and aggressive stance
+        t_amount = random.choice([i/10 for i in range(1, 10)])
+        return t_row, max(min(ceil(t_amount * state.return_rows[t_row]), state.return_rows[t_row] - 1), 1)
     else:
         return t_row, state.return_rows[t_row]
 
 
-def semi_self_adapter(state: Nim) -> tuple:
-    """deterministic behaviour. "Semi" because it still uses fixed rules"""
-    # todo
-    analyze_situation(state)
-    set_new_situation((sum(state.return_rows), sum([x for x in state.return_rows if x > 0])))
-    return 0, 0
+def the_mirrorer(state: Nim) -> tuple:
+    """It tries to mirror as good as it can the opponent's moves"""
+    t_row, t_amount, flag = analyze_situation(state)
+    state.set_mirror_flags((state.return_mirror_flags[ROWS] - int(flag), state.return_mirror_flags[OBJECTS] - t_amount))
+    return t_row, t_amount
+
+
+def the_balancer(state: Nim) -> tuple:
+    target = sorted(set(state.return_rows))
+    if len(target) < 2:
+        can_balance = False
+        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 1]
+        if len(choices) == 0:
+            choices = [i for i in range(state.return_nrows) if state.return_rows[i] > 0]
+    else:
+        can_balance = True
+        target = target[-2]
+        choices = [i for i in range(state.return_nrows) if state.return_rows[i] > target]
+    t_row = random.choice(choices)
+    if killer_instinct(state):
+        return t_row, state.return_rows[t_row]
+    return t_row, (state.return_rows[t_row] - target if can_balance else 1)

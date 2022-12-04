@@ -1,3 +1,5 @@
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from game_utilities import Callable
 from game_utilities import Nim, get_info, random
 
@@ -11,25 +13,8 @@ PACIFIST = 0
 VIGILANT = 1
 AGGRESSIVE = 2
 
-# strategies already present
-OPTIMAL_STRATEGY = 5
-PURE_RANDOM = 6
-GABRIELE = 7
-MAKE_STRATEGY_1 = 8
-MAKE_STRATEGY_5 = 9
-MAKE_STRATEGY_9 = 10
-DUMMY = 11
-# my strategies
-HEL = 0
-HEL_CHALLENGER = 1
-SPREADER = 2
-AGGRESSIVE_SPREADER = 3
-NIMSUM_LIL_BROTHER = 4
-HEL_TRIPHASE = 12
-SEMI_SELF_ADAPTER = 13
-# used for the "analyze situation" function and the "semi_self_adapter" strategy
-SEMI_EVOLUTION_FLAGS = 0, 0
-
+ROWS = 0
+OBJECTS = 1
 
 def make_strategy(p: float) -> Callable:
     def evolvable(state: Nim) -> tuple:
@@ -43,18 +28,26 @@ def make_strategy(p: float) -> Callable:
 
 
 def analyze_situation(state):
-    objects_removed_by_opponent = SEMI_EVOLUTION_FLAGS[0] - sum(state.return_rows)
-    row_cleared_by_opponent = bool(SEMI_EVOLUTION_FLAGS[1] - sum([x for x in state.return_rows if x > 0]))
-    if objects_removed_by_opponent > state.return_k or \
-            (row_cleared_by_opponent and objects_removed_by_opponent > state.return_k/10):
-        """opponent is playing aggressively"""
-
-        pass
+    objects_removed_by_opponent = state.return_mirror_flags[OBJECTS] - sum(state.return_rows)
+    row_cleared_by_opponent = bool(state.return_mirror_flags[ROWS] - get_info(state)["remaining rows"] > 0)
+    flag = False
+    if row_cleared_by_opponent:
+        choices = [x for x in range(state.return_nrows) if 0 < state.return_rows[x] == objects_removed_by_opponent]
+        if len(choices) == 0:
+            choices = [x for x in range(state.return_nrows) if state.return_rows[x] > 0]
     else:
-        """opponent is playing casually"""
-        pass
+        choices = [x for x in range(state.return_nrows) if state.return_rows[x] > max(1, objects_removed_by_opponent)]
+        if len(choices) == 0:
+            choices = [x for x in range(state.return_nrows) if state.return_rows[x] > 1]
+            if len(choices) == 0:
+                choices = [x for x in range(state.return_nrows) if state.return_rows[x] > 0]
+                flag = True
+    t_row = random.choice(choices)
+    if row_cleared_by_opponent or killer_instinct(state):
+        return t_row, state.return_rows[t_row], True
+    else:
+        return t_row, max(1, state.return_mirror_flags[OBJECTS] - sum(state.return_rows)), flag
 
 
-def set_new_situation(n_situation):
-    global SEMI_EVOLUTION_FLAGS
-    SEMI_EVOLUTION_FLAGS = n_situation
+def killer_instinct(state):
+    return get_info(state)["remaining rows"] == 1 and sum(state.return_rows) > 1

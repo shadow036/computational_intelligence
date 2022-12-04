@@ -18,7 +18,25 @@ TOTAL = 1
 # strategy names
 STRATEGIES = ['hel', 'hel_challenger', 'spreader', 'aggressive_spreader', 'nimsum_lil_brother', 'optimal_strategy',
               'pure_random', 'gabriele', 'make_strategy(0.1)', 'make_strategy(0.5)', 'make_strategy(0.9)', 'dummy',
-              'hel_triphase', 'semi_self_adapter']
+              'hel_triphase', 'the_balancer', 'the_mirrorer']
+
+# strategies which were already present
+OPTIMAL_STRATEGY = 5
+PURE_RANDOM = 6
+GABRIELE = 7
+MAKE_STRATEGY_1 = 8
+MAKE_STRATEGY_5 = 9
+MAKE_STRATEGY_9 = 10
+DUMMY = 11
+# my strategies
+HEL = 0
+HEL_CHALLENGER = 1
+SPREADER = 2
+AGGRESSIVE_SPREADER = 3
+NIMSUM_LIL_BROTHER = 4
+HEL_TRIPHASE = 12
+THE_BALANCER = 13
+THE_MIRRORER = 14
 # hyperparameters for the 'evaluate' and 'tournament' functions
 N_ROWS = 11
 MATCHES = 10
@@ -30,6 +48,7 @@ class Nim:
         self.rows = [i * 2 + 1 for i in range(num_rows)]
         self.original_rows = self.rows.copy()
         self.k = k
+        self.mirror_flags = num_rows, sum(self.rows)
 
     def __bool__(self):
         return sum(self.rows) > 0
@@ -46,6 +65,13 @@ class Nim:
         return tuple(self.original_rows)
 
     @property
+    def return_mirror_flags(self):
+        return self.mirror_flags
+
+    def set_mirror_flags(self, n_flags):
+        self.mirror_flags = n_flags
+
+    @property
     def return_nrows(self) -> int:
         return len(self.rows)
 
@@ -60,11 +86,11 @@ class Nim:
         self.rows[row] -= num_objects
 
 
-def evaluate(strategy: Callable, benchmark: Callable, n_rows, matches, indices=None, tournament=False):
+def evaluate(strategy: Callable, benchmark: Callable, n_rows, matches, indices, tournament=False):
     logging.getLogger().setLevel(logging.DEBUG)
     strategies = (strategy, benchmark)
     my_win_rates = np.zeros((2, 2))
-    starting_player = random.choices([PLAYER1, PLAYER2])[0]
+    starting_player = random.choice([PLAYER1, PLAYER2])
     for _ in range(matches):
         nim = Nim(num_rows=n_rows)
         player = starting_player
@@ -141,7 +167,7 @@ def run_tournament(strategies, k, matches):
     global_win_rates = np.zeros(len(strategies))
     for i in range(len(strategies) - 1):
         for j in range(i+1, len(strategies)):
-            w1, w2 = evaluate(strategies[i], strategies[j], k, matches, tournament=True)
+            w1, w2 = evaluate(strategies[i], strategies[j], k, matches, (i, j), tournament=True)
             global_win_rates[i] += w1
             global_win_rates[j] += w2
         print(f'{STRATEGIES[i]}: {round(100 * global_win_rates[i]/(len(strategies) - 1), 3)}%')

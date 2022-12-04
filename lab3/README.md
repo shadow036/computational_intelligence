@@ -33,24 +33,25 @@ Other than strategies developed in class (the optimal strategy, the dummy one, t
    The situation that proves that this is not the optimal solution is that it is (rarely) still capable of losing again the other non-optimal ones. 
    * "the balancer" constantly tries to balance the number of objects in each row by removing a certain amount of objects from the row having the biggest M in order to make it equal (in terms of amount of objects) to the one having the second largest M.
 ### Tournament results (11 rows, 100 games for each pair of strategies)
-**STRATEGY&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;WIN RATE** \
-Divergent&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;62.5 % \
-Divergent challenger&emsp;&emsp;&emsp;75  % \
-Spreader&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;15.34\
-Aggressive spreader&emsp;&emsp;&emsp;33.9\
-Nimsum little brother \
-Optimal strategy \
-Pure random \
-Gabriele's \
-Make strategy (0.1) \
-Make strategy (0.5) \
-Make strategy (0.9) \
-Dummy \
-Divergent triphase \
-The Balancer \
-The Mirrorer \
-Random spreader \
-The reversed Mirrorer 
+[sorry about the wobbly alignment]\
+**STRATEGY&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;WIN RATE [defeated opponents] (%)&emsp;&emsp;WIN RATE [games won] (%)** \
+Divergent&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;56.25&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;52.062\
+Divergent challenger&emsp;&emsp;&emsp;68.75&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;56.188\
+Spreader&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;68.75&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;65.688\
+Aggressive spreader&emsp;&emsp;&emsp;31.25&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;44.688\
+Nimsum little brother&emsp;&emsp;&emsp;93.75&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;87.625\
+Optimal strategy&emsp;&emsp;&emsp;&emsp;&emsp;100&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;99.938\
+Pure random&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;31.25&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;38.688\
+Gabriele's&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;50&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;47.812\
+Make strategy (0.1)&emsp;&emsp;&emsp;31.25&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;46.875\
+Make strategy (0.5)&emsp;&emsp;&emsp;18.75&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;35.812\
+Make strategy (0.9)&emsp;&emsp;&emsp;12.5&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;22.5\
+Dummy&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;0&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;0\
+Divergent triphase&emsp;&emsp;&emsp;&emsp;56.25&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;58.062\
+The Balancer&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;37.5&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;42.25\
+The Mirrorer&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;37.5&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;38.75\
+Random spreader&emsp;&emsp;&emsp;&emsp;62.5&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;55.25\
+The reversed Mirrorer&emsp;&emsp;&emsp;68.75&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;57.812
 
 
 ## Exercise 3.2

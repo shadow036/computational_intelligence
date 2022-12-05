@@ -18,7 +18,14 @@ TOTAL = 1
 STRATEGIES = ['divergent', 'divergent_challenger', 'spreader', 'aggressive_spreader', 'nimsum_little_brother',
               'optimal_strategy',
               'pure_random', 'gabriele', 'make_strategy(0.1)', 'make_strategy(0.5)', 'make_strategy(0.9)', 'dummy',
-              'divergent_triphase', 'the_balancer', 'the_mirrorer', 'random_spreader', 'the_reversed_mirrorer']
+              'divergent_triphase', 'the_balancer', 'the_mirrorer', 'random_spreader', 'the_reversed_mirrorer',
+
+              's_divergent', 's_the_balancer', 's_the_reversed_mirrorer', 's_gabriele', 's_spreader',
+              's_pure_random',
+              's_nimsum_little_brother',
+
+              'custom'
+              ]
 
 # strategies which were already present
 OPTIMAL_STRATEGY = 5
@@ -29,6 +36,7 @@ MAKE_STRATEGY_5 = 9
 MAKE_STRATEGY_9 = 10
 DUMMY = 11
 # my strategies
+CUSTOM = -1
 DIVERGENT = 0
 DIVERGENT_CHALLENGER = 1
 SPREADER = 2
@@ -39,6 +47,13 @@ THE_BALANCER = 13
 THE_MIRRORER = 14
 RANDOM_SPREADER = 15
 THE_REVERSED_MIRRORER = 16
+S_DIVERGENT = 17
+S_THE_BALANCER = 18
+S_THE_REVERSED_MIRRORER = 19
+S_GABRIELE = 20
+S_SPREADER = 21
+S_PURE_RANDOM = 22
+S_NIMSUM_LITTLE_BROTHER = 23
 # hyperparameters for the 'evaluate' and 'tournament' functions
 N_ROWS = 11
 MATCHES = 100
@@ -83,9 +98,12 @@ class Nim:
         self.rows[row] -= num_objects
 
 
-def evaluate(strategies: Callable, n_rows, matches, indices, tournament=False):
+def evaluate(strategies: Callable, n_rows, matches, indices=None, tournament=False, players=None):
     logging.getLogger().setLevel(logging.DEBUG)
-    strategies = (strategies[indices[PLAYER1]], strategies[indices[PLAYER2]])
+    if players is None:
+        strategies = (strategies[indices[PLAYER1]], strategies[indices[PLAYER2]])
+    else:
+        strategies = (players[0], players[1])
     my_win_rates = np.zeros((2, 2))
     starting_player = random.choice([PLAYER1, PLAYER2])
     for _ in range(matches):
@@ -97,16 +115,16 @@ def evaluate(strategies: Callable, n_rows, matches, indices, tournament=False):
         if not tournament:
             logging.debug(f"status: Initial board  -> {nim}")
         while nim:
-            if indices[player] == THE_MIRRORER:
+            if indices[player] == THE_MIRRORER or indices[player] == S_THE_MIRRORER:
                 ply, mirror_flags[player] = strategies[player](nim, mirror_flags[player])
-            elif indices[player] == THE_REVERSED_MIRRORER:
+            elif indices[player] == THE_REVERSED_MIRRORER or indices[player] == S_THE_REVERSED_MIRRORER:
                 ply, reverse_mirror_flags[player] = strategies[player](nim, reverse_mirror_flags[player])
             else:
                 ply = strategies[player](nim)
             nim.nimming(ply)
             if not tournament:
                 logging. \
-                    debug(f"status: After {STRATEGIES[indices[player]]} turn -> {nim}")
+                    debug(f"status: After {STRATEGIES[indices[player]]}{'#' + str(player) if indices[player] == CUSTOM else ''} turn -> {nim}")
             player = 1 - player
         winner = 1 - player
         if not tournament:

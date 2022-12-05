@@ -65,3 +65,7 @@ In fact even if it is very high (as expected), it is not 100 % and furthermore i
 Thinking that one (or more) of the other fixed-rule strategies was able to defeat the optimal one is quite impressive and the agent which had the highest chanches to accomplish this feat was probably the smaller version of the nim-sum itself.
 
 ## Exercise 3.2
+In the second exercise I tried to parametrize the strategies by giving to some of them an additional parameter p during creation. \
+This parameter is used by all agents in "evolving_agents.py" and it is a value between 0 and 1. It affects the strategy of the agents by introducing a different behaviours based on the threshold p.
+As a simple form of mutation I just tried to generate other agents having the same "base" behaviour but adding a modification to the parameter p. \
+Unfortunately I couldn't complete the exercise but all the functions and the main ideas are present.

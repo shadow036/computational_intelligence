@@ -39,3 +39,16 @@ def generate_difference(list1, list2):
     for i in range(len(list1)):
         result.append(list1[i] - list2[i])
     return result
+
+
+def make_substrategy(base: Callable, type: int, p: float) -> Callable:
+    def new_substrategy(state: Nim) -> Callable:
+        return base(state, p)
+    return new_substrategy, type
+
+
+def substrategies_mutation(type, old_p, base):
+    return make_substrategy(base, type, random.choice([
+        min(1, old_p + random.random()),
+        max(0, old_p - random.random())])
+                            )

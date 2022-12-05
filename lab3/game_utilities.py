@@ -139,7 +139,8 @@ def evaluate(strategies: Callable, n_rows, matches, indices, tournament=False):
         return [my_win_rates, my_win_rate_starting_first, my_win_rate_starting_second], \
             [opponent_win_rate, opponent_win_rate_starting_first, opponent_win_rate_starting_second], \
             [win_rate_starting_first, win_rate_starting_second]
-    return my_win_rate > 50, opponent_win_rate > 50, sum(my_win_rates[WINS, :]), matches - sum(my_win_rates[WINS, :])
+    return my_win_rate > 50, opponent_win_rate > 50, sum(my_win_rates[WINS, :]),\
+        my_win_rates[WINS, STARTING_FIRST],  my_win_rates[WINS, STARTING_SECOND]
 
 
 def get_info(state: Nim) -> dict:
@@ -169,27 +170,35 @@ def get_info(state: Nim) -> dict:
 
 
 def run_tournament(strategies, k, matches):
-    global_win_rates = np.zeros((2, len(strategies)))
+    global_win_rates = np.zeros((4, len(strategies)))
     for i in range(len(strategies) - 1):
         for j in range(i + 1, len(strategies)):
-            w1, w2, w3, w4 = evaluate(strategies, k, matches, (i, j), tournament=True)
-            global_win_rates[0, i] += w1
+            w1, w2, w3, w4, w5 = evaluate(strategies, k, matches, (i, j), tournament=True)
+            global_win_rates[0, i] += w1    # % defeated opponents
             global_win_rates[0, j] += w2
-            global_win_rates[1, i] += w3
-            global_win_rates[1, j] += w4
+            global_win_rates[1, i] += w3    # % games won
+            global_win_rates[1, j] += matches - w3
+            global_win_rates[2, i] += w4    # % games won starting first
+            global_win_rates[2, j] += (matches/2) - w5
+            global_win_rates[3, i] += w5    # % games won starting second
+            global_win_rates[3, j] += (matches/2) - w4
         print(f'{STRATEGIES[i]}: {round(100 * global_win_rates[0, i] / (len(strategies) - 1), 3)}%',
-              f'{round(100 * global_win_rates[1, i] / (matches * (len(strategies) - 1)), 3)}')
+              f'{round(100 * global_win_rates[1, i] / (matches * (len(strategies) - 1)), 3)}',
+              f'\t\t{round(100 * global_win_rates[2, i] / ((matches/2) * (len(strategies) - 1)), 3)}',
+              f'{round(100 * global_win_rates[3, i] / ((matches/2) * (len(strategies) - 1)), 3)}')
     print(f'{STRATEGIES[-1]}: {round(100 * global_win_rates[0, -1] / (len(strategies) - 1), 3)}%',
-          f'{round(100 * global_win_rates[1, -1] / (matches * (len(strategies) - 1)), 3)}')
+          f'{round(100 * global_win_rates[1, -1] / (matches * (len(strategies) - 1)), 3)}',
+          f'\t\t{round(100 * global_win_rates[2, -1] / ((matches / 2) * (len(strategies) - 1)), 3)}',
+          f'{round(100 * global_win_rates[3, -1] / ((matches / 2) * (len(strategies) - 1)), 3)}')
     global_win_rates = 100 * global_win_rates / (len(strategies) - 1)
     print(f'\n"DIVERGENT" family average win rate: '
-          f'{(global_win_rates[DIVERGENT] + global_win_rates[DIVERGENT_CHALLENGER] + global_win_rates[DIVERGENT_TRIPHASE]) / 3}')
+          f'{(global_win_rates[0, DIVERGENT] + global_win_rates[0, DIVERGENT_CHALLENGER] + global_win_rates[0, DIVERGENT_TRIPHASE]) / 3}')
     print(f'"SPREADER" family average win rate: '
-          f'{(global_win_rates[SPREADER] + global_win_rates[AGGRESSIVE_SPREADER] + global_win_rates[RANDOM_SPREADER]) / 3}')
+          f'{(global_win_rates[0, SPREADER] + global_win_rates[0, AGGRESSIVE_SPREADER] + global_win_rates[0, RANDOM_SPREADER]) / 3}')
     print(f'"MAKE_STRATEGY" family average win rate: '
-          f'{(global_win_rates[MAKE_STRATEGY_1] + global_win_rates[MAKE_STRATEGY_5] + global_win_rates[MAKE_STRATEGY_9]) / 3}')
+          f'{(global_win_rates[0, MAKE_STRATEGY_1] + global_win_rates[0, MAKE_STRATEGY_5] + global_win_rates[0, MAKE_STRATEGY_9]) / 3}')
     print(f'"THE_MIRRORER" family average win rate: '
-          f'{(global_win_rates[THE_MIRRORER] + global_win_rates[THE_REVERSED_MIRRORER]) / 2}')
+          f'{(global_win_rates[0, THE_MIRRORER] + global_win_rates[0, THE_REVERSED_MIRRORER]) / 2}')
     return global_win_rates
 
 

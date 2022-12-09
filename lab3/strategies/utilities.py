@@ -1,20 +1,34 @@
 import logging
-from typing import Callable
 import random
 from copy import deepcopy
 import numpy as np
 from itertools import accumulate
 from operator import xor
 
-# player IDs
+from fixed_rules import THE_MIRRORER, THE_REVERSED_MIRRORER
+from fixed_rules import divergent, divergent_challenger, spreader, aggressive_spreader, nimsum_little_brother, \
+    optimal_strategy, pure_random, gabriele, make_strategy, dummy, divergent_triphase, the_balancer, the_mirrorer, \
+    random_spreader, the_reversed_mirrorer
+
+from evolving_agents import S_THE_REVERSED_MIRRORER
+from evolving_agents import s_divergent, s_the_balancer, s_the_reversed_mirrorer, s_gabriele, s_spreader, \
+    s_pure_random, s_nimsum_little_brother
+
+N_ROWS = 11
+N_MATCHES = 100
+K = None
+
 PLAYER1 = 0
 PLAYER2 = 1
-# statistics indices for the 'evaluate function'
+
 STARTING_FIRST = 1
 STARTING_SECOND = 0
+
 WINS = 0
 TOTAL = 1
-# strategy names
+
+CUSTOM = -1
+
 STRATEGIES = ['divergent', 'divergent_challenger', 'spreader', 'aggressive_spreader', 'nimsum_little_brother',
               'optimal_strategy',
               'pure_random', 'gabriele', 'make_strategy(0.1)', 'make_strategy(0.5)', 'make_strategy(0.9)', 'dummy',
@@ -26,38 +40,6 @@ STRATEGIES = ['divergent', 'divergent_challenger', 'spreader', 'aggressive_sprea
 
               'custom'
               ]
-
-# strategies which were already present
-OPTIMAL_STRATEGY = 5
-PURE_RANDOM = 6
-GABRIELE = 7
-MAKE_STRATEGY_1 = 8
-MAKE_STRATEGY_5 = 9
-MAKE_STRATEGY_9 = 10
-DUMMY = 11
-# my strategies
-CUSTOM = -1
-DIVERGENT = 0
-DIVERGENT_CHALLENGER = 1
-SPREADER = 2
-AGGRESSIVE_SPREADER = 3
-NIMSUM_LITTLE_BROTHER = 4
-DIVERGENT_TRIPHASE = 12
-THE_BALANCER = 13
-THE_MIRRORER = 14
-RANDOM_SPREADER = 15
-THE_REVERSED_MIRRORER = 16
-S_DIVERGENT = 17
-S_THE_BALANCER = 18
-S_THE_REVERSED_MIRRORER = 19
-S_GABRIELE = 20
-S_SPREADER = 21
-S_PURE_RANDOM = 22
-S_NIMSUM_LITTLE_BROTHER = 23
-# hyperparameters for the 'evaluate' and 'tournament' functions
-N_ROWS = 11
-MATCHES = 100
-K = None
 
 
 class Nim:
@@ -98,7 +80,7 @@ class Nim:
         self.rows[row] -= num_objects
 
 
-def evaluate(strategies: Callable, n_rows, matches, indices=None, tournament=False, players=None):
+def evaluate(strategies: list, n_rows, matches, indices=None, tournament=False, players=None):
     logging.getLogger().setLevel(logging.DEBUG)
     if players is None:
         strategies = (strategies[indices[PLAYER1]], strategies[indices[PLAYER2]])
@@ -115,7 +97,7 @@ def evaluate(strategies: Callable, n_rows, matches, indices=None, tournament=Fal
         if not tournament:
             logging.debug(f"status: Initial board  -> {nim}")
         while nim:
-            if indices[player] == THE_MIRRORER or indices[player] == S_THE_MIRRORER:
+            if indices[player] == THE_MIRRORER:
                 ply, mirror_flags[player] = strategies[player](nim, mirror_flags[player])
             elif indices[player] == THE_REVERSED_MIRRORER or indices[player] == S_THE_REVERSED_MIRRORER:
                 ply, reverse_mirror_flags[player] = strategies[player](nim, reverse_mirror_flags[player])
@@ -124,7 +106,8 @@ def evaluate(strategies: Callable, n_rows, matches, indices=None, tournament=Fal
             nim.nimming(ply)
             if not tournament:
                 logging. \
-                    debug(f"status: After {STRATEGIES[indices[player]]}{'#' + str(player) if indices[player] == CUSTOM else ''} turn -> {nim}")
+                    debug(f"status: After {STRATEGIES[indices[player]]}"
+                          f"{'#' + str(player) if indices[player] == CUSTOM else ''} turn -> {nim}")
             player = 1 - player
         winner = 1 - player
         if not tournament:
@@ -157,8 +140,8 @@ def evaluate(strategies: Callable, n_rows, matches, indices=None, tournament=Fal
         return [my_win_rates, my_win_rate_starting_first, my_win_rate_starting_second], \
             [opponent_win_rate, opponent_win_rate_starting_first, opponent_win_rate_starting_second], \
             [win_rate_starting_first, win_rate_starting_second]
-    return my_win_rate > 50, opponent_win_rate > 50, sum(my_win_rates[WINS, :]),\
-        my_win_rates[WINS, STARTING_FIRST],  my_win_rates[WINS, STARTING_SECOND]
+    return my_win_rate > 50, opponent_win_rate > 50, sum(my_win_rates[WINS, :]), \
+        my_win_rates[WINS, STARTING_FIRST], my_win_rates[WINS, STARTING_SECOND]
 
 
 def get_info(state: Nim) -> dict:
@@ -192,34 +175,37 @@ def run_tournament(strategies, k, matches):
     for i in range(len(strategies) - 1):
         for j in range(i + 1, len(strategies)):
             w1, w2, w3, w4, w5 = evaluate(strategies, k, matches, (i, j), tournament=True)
-            global_win_rates[0, i] += w1    # % defeated opponents
+            global_win_rates[0, i] += w1  # % defeated opponents
             global_win_rates[0, j] += w2
-            global_win_rates[1, i] += w3    # % games won
+            global_win_rates[1, i] += w3  # % games won
             global_win_rates[1, j] += matches - w3
-            global_win_rates[2, i] += w4    # % games won starting first
-            global_win_rates[2, j] += (matches/2) - w5
-            global_win_rates[3, i] += w5    # % games won starting second
-            global_win_rates[3, j] += (matches/2) - w4
+            global_win_rates[2, i] += w4  # % games won starting first
+            global_win_rates[2, j] += (matches / 2) - w5
+            global_win_rates[3, i] += w5  # % games won starting second
+            global_win_rates[3, j] += (matches / 2) - w4
         print(f'{STRATEGIES[i]}: {round(100 * global_win_rates[0, i] / (len(strategies) - 1), 3)}%',
               f'{round(100 * global_win_rates[1, i] / (matches * (len(strategies) - 1)), 3)}',
-              f'\t\t{round(100 * global_win_rates[2, i] / ((matches/2) * (len(strategies) - 1)), 3)}',
-              f'{round(100 * global_win_rates[3, i] / ((matches/2) * (len(strategies) - 1)), 3)}')
+              f'\t\t{round(100 * global_win_rates[2, i] / ((matches / 2) * (len(strategies) - 1)), 3)}',
+              f'{round(100 * global_win_rates[3, i] / ((matches / 2) * (len(strategies) - 1)), 3)}')
     print(f'{STRATEGIES[-1]}: {round(100 * global_win_rates[0, -1] / (len(strategies) - 1), 3)}%',
           f'{round(100 * global_win_rates[1, -1] / (matches * (len(strategies) - 1)), 3)}',
           f'\t\t{round(100 * global_win_rates[2, -1] / ((matches / 2) * (len(strategies) - 1)), 3)}',
           f'{round(100 * global_win_rates[3, -1] / ((matches / 2) * (len(strategies) - 1)), 3)}')
     global_win_rates = 100 * global_win_rates / (len(strategies) - 1)
-    print(f'\n"DIVERGENT" family average win rate: '
-          f'{(global_win_rates[0, DIVERGENT] + global_win_rates[0, DIVERGENT_CHALLENGER] + global_win_rates[0, DIVERGENT_TRIPHASE]) / 3}')
-    print(f'"SPREADER" family average win rate: '
-          f'{(global_win_rates[0, SPREADER] + global_win_rates[0, AGGRESSIVE_SPREADER] + global_win_rates[0, RANDOM_SPREADER]) / 3}')
-    print(f'"MAKE_STRATEGY" family average win rate: '
-          f'{(global_win_rates[0, MAKE_STRATEGY_1] + global_win_rates[0, MAKE_STRATEGY_5] + global_win_rates[0, MAKE_STRATEGY_9]) / 3}')
-    print(f'"THE_MIRRORER" family average win rate: '
-          f'{(global_win_rates[0, THE_MIRRORER] + global_win_rates[0, THE_REVERSED_MIRRORER]) / 2}')
     return global_win_rates
 
 
 def nim_sum(state: Nim) -> int:
     *_, result = accumulate(state.get_rows, xor)
     return result
+
+
+def get_all_strategies():
+    strategies = [
+        divergent, divergent_challenger, spreader, aggressive_spreader, nimsum_little_brother, optimal_strategy,
+        pure_random, gabriele, make_strategy(0.1), make_strategy(0.5), make_strategy(0.9), dummy, divergent_triphase,
+        the_balancer, the_mirrorer, random_spreader, the_reversed_mirrorer,
+        s_divergent, s_the_balancer, s_the_reversed_mirrorer, s_gabriele, s_spreader, s_pure_random,
+        s_nimsum_little_brother
+    ]
+    return strategies

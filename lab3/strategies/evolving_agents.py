@@ -1,13 +1,18 @@
-import sys, os
+from utilities import Nim, get_info
+import random
+import numpy as np
+from fixed_rules import PACIFIST, AGGRESSIVE, ROWS, ARRAY
+from fixed_rules import finishing_or_forced_move, generate_difference
+from utilities import PLAYER1, PLAYER2
+from typing import Callable
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
-from game_utilities import Nim, get_info
-from strategies.strategy_utilities import random
-from strategies.strategy_utilities import PACIFIST, VIGILANT, AGGRESSIVE, ROWS, OBJECTS, ARRAY
-from strategies.strategy_utilities import finishing_or_forced_move, generate_difference
-from game_utilities import np
-from game_utilities import PLAYER1, PLAYER2
-# from math import ceil
+S_DIVERGENT = 17
+S_THE_BALANCER = 18
+S_THE_REVERSED_MIRRORER = 19
+S_GABRIELE = 20
+S_SPREADER = 21
+S_PURE_RANDOM = 22
+S_NIMSUM_LITTLE_BROTHER = 23
 
 # all p's are float and between [0, 1]
 
@@ -17,7 +22,7 @@ def s_pure_random(state: Nim, p) -> tuple:
     p1 = all_possibilities[:len(all_possibilities)//2]
     p2 = all_possibilities[len(all_possibilities)//2:]
     p_final = [p1, p2]
-    index = np.random.choice(2, 1, [p, 1 - p])
+    index = np.random.choice(a=2, size=1, p=[p, 1 - p])
     row = random.choice(p_final[index])
     num_objects = random.randint(1, state.get_rows[row])
     return row, num_objects
@@ -45,7 +50,7 @@ def s_nimsum_little_brother(state: Nim, p: float) -> tuple:
     reach the optimal situation for the actual min-sum"""
     info = get_info(state)
     if info["rows with more than 1"] == 1 and info["rows with 1"] % 2 == 0:  # trigger
-        t_row = np.argmax(state.get_rows)
+        t_row = np.argmax(state.get_rows)[0]
         return t_row, state.get_rows[t_row]
     choices = [i for i in range(state.get_nrows) if state.get_rows[i] > 1]  # setup
     if len(choices) == 0:
@@ -57,16 +62,16 @@ def s_nimsum_little_brother(state: Nim, p: float) -> tuple:
 
 def s_divergent(state, p: float):
     """each turn it either takes 1 object from a row having more than 1 objects or completely clears one row"""
-    personality = AGGRESSIVE if finishing_or_forced_move(state) else np.random.choice([PACIFIST, AGGRESSIVE], 1, [p, 1 - p])
+    personality = AGGRESSIVE if finishing_or_forced_move(state) else \
+        np.random.choice(a=[PACIFIST, AGGRESSIVE], size=1, p=[p, 1 - p])
     choices = [i for i in range(state.get_nrows) if state.get_rows[i] > 1]
     if personality == AGGRESSIVE or len(choices) == 0:
         choices = [i for i in range(state.get_nrows) if state.get_rows[i] > 0]
     t_row = random.choice(choices)
     return t_row, 1 if personality == PACIFIST else state.get_rows[t_row]
-# "MIRRORER" FAMILY ----------------------------------------------------------------------------------------------------
 
 
-def s_the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple) -> tuple:
+def s_the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple, p: float) -> tuple:
     """What the opponent takes in a row, this strategy leaves in a row"""
     opponent_clear_flag = opponent_clear_flag_o = reverse_mirror_flags[ROWS] - get_info(state)["remaining rows"]
     difference = generate_difference(reverse_mirror_flags[ARRAY], state.get_rows)
@@ -76,7 +81,7 @@ def s_the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple) -> tuple:
     my_clear_flag = my_clear_flag_o = int(sum(difference) == 1)
     changing_factor = max(difference[changed_row_index], 1)
     if opponent_clear_flag + my_clear_flag == 2:
-        if bool(np.random.choice([PLAYER1, PLAYER2], 1, [p, 1 - p])):
+        if bool(np.random.choice(a=[PLAYER1, PLAYER2], size=1, p=[p, 1 - p])):
             opponent_clear_flag = 0
     if bool(opponent_clear_flag):
         choices = [x for x in range(state.get_nrows) if state.get_rows[x] > 1]
@@ -121,3 +126,15 @@ def s_the_balancer(state: Nim, p: float) -> tuple:
     if finishing_or_forced_move(state):
         return t_row, state.get_rows[t_row]
     return t_row, (state.get_rows[t_row] - target if can_balance else 1)
+
+
+def make_substrategy(base: Callable, type_: int, p: float) -> tuple:
+    def new_substrategy(state: Nim) -> Callable:
+        return base(state, p)
+    return new_substrategy, type_
+
+
+def substrategies_mutation(type_, old_p, base):
+    return make_substrategy(base, type_, random.choice([
+        min(1, old_p + random.random()),
+        max(0, old_p - random.random())]))

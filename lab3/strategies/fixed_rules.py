@@ -1,16 +1,36 @@
-import sys, os
+import random
+import numpy as np
+from utilities import Nim, get_info
+from utilities import PLAYER1, PLAYER2
+from typing import Callable
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
-from game_utilities import Nim, get_info
-from strategies.strategy_utilities import random
-from strategies.strategy_utilities import PACIFIST, VIGILANT, AGGRESSIVE, ROWS, OBJECTS, ARRAY
-from strategies.strategy_utilities import finishing_or_forced_move, generate_difference
-from game_utilities import np
-from game_utilities import PLAYER1, PLAYER2
-# from math import ceil
+PACIFIST = 0
+VIGILANT = 1
+AGGRESSIVE = 2
+
+ROWS = 0
+OBJECTS = 1
+ARRAY = 1
+
+OPTIMAL_STRATEGY = 5
+PURE_RANDOM = 6
+GABRIELE = 7
+MAKE_STRATEGY_1 = 8
+MAKE_STRATEGY_5 = 9
+MAKE_STRATEGY_9 = 10
+DUMMY = 11
+DIVERGENT = 0
+DIVERGENT_CHALLENGER = 1
+SPREADER = 2
+AGGRESSIVE_SPREADER = 3
+NIMSUM_LITTLE_BROTHER = 4
+DIVERGENT_TRIPHASE = 12
+THE_BALANCER = 13
+THE_MIRRORER = 14
+RANDOM_SPREADER = 15
+THE_REVERSED_MIRRORER = 16
 
 
-# BENCHMARKS    --------------------------------------------------------------------------------------------------------
 def optimal_strategy(state: Nim) -> tuple:  # benchmark
     data = get_info(state)
     return next((bf for bf in data["brute_force"] if bf[1] == 0),
@@ -18,11 +38,10 @@ def optimal_strategy(state: Nim) -> tuple:  # benchmark
 
 
 def dummy(state: Nim = None) -> tuple:  # benchmark
-    return 0, 0  # it doesn't do anything (the state remains the same)
+    return 0, 0
 
 
 def pure_random(state: Nim) -> tuple:
-    """already present"""
     row = random.choice([r for r, c in enumerate(state.get_rows) if c > 0])
     num_objects = random.randint(1, state.get_rows[row])
     return row, num_objects
@@ -32,9 +51,6 @@ def gabriele(state: Nim) -> tuple:
     """Picks always the maximum possible number of objects in the lowest row"""
     possible_moves = [(r, o) for r, c in enumerate(state.get_rows) for o in range(1, c + 1)]
     return max(possible_moves, key=lambda m: (-m[0], m[1]))
-
-
-# "SPREADER" FAMILY ----------------------------------------------------------------------------------------------------
 
 
 def spreader(state: Nim) -> tuple:
@@ -54,11 +70,12 @@ def random_spreader(state: Nim):
     if len(choices) == 0:
         choices = [np.argmax(state.get_rows)]
     t_row = random.choice(choices)
-    return t_row, state.get_rows[t_row] if finishing_or_forced_move(state) else random.randint(1, state.get_rows[t_row] - 1)
+    return t_row, state.get_rows[t_row] if finishing_or_forced_move(state) else random.randint(1, state.get_rows[
+        t_row] - 1)
 
 
 def aggressive_spreader(state: Nim) -> tuple:
-    """same as before but it normally takes (all - 1) objects form a row each turn unless forced to or it is the move
+    """same as before but it normally takes (all - 1) objects form a row each turn unless forced to, or it is the move
     to win the game (in those cases it clears the entire row)"""
     choices = [i for i in range(state.get_nrows) if
                state.get_rows[i] == state.get_original_rows[i] and state.get_rows[i] > 0]
@@ -69,15 +86,12 @@ def aggressive_spreader(state: Nim) -> tuple:
     return t_row, state.get_rows[t_row] if finishing_or_forced_move(state) else t_amount
 
 
-# "NIM-SUM" DERIVED-----------------------------------------------------------------------------------------------------
-
-
 def nimsum_little_brother(state: Nim) -> tuple:
     """nim-sum strategy but it doesn't use the original strategy until the very end. When it doesn't do this it tries to
     reach the optimal situation for the actual min-sum"""
     info = get_info(state)
     if info["rows with more than 1"] == 1 and info["rows with 1"] % 2 == 0:  # trigger
-        t_row = np.argmax(state.get_rows)
+        t_row = np.argmax(state.get_rows)[0]
         return t_row, state.get_rows[t_row]
     choices = [i for i in range(state.get_nrows) if state.get_rows[i] > 1]  # setup
     if len(choices) == 0:
@@ -85,9 +99,6 @@ def nimsum_little_brother(state: Nim) -> tuple:
     t_row = random.choice(choices)
     t_amount = max(1, state.get_rows[t_row] - 1)
     return t_row, t_amount
-
-
-# "DIVERGENT" FAMILY ---------------------------------------------------------------------------------------------------------
 
 
 def divergent(state):
@@ -123,14 +134,9 @@ def divergent_triphase(state):
     if personality == PACIFIST:
         return t_row, 1
     elif personality == VIGILANT:
-        #t_amount = random.choice([i / 10 for i in range(1, 10)])
-        #return t_row, max(min(ceil(t_amount * state.get_rows[t_row]), state.get_rows[t_row] - 1), 1)
-        return t_row, max(1, state.get_rows[t_row]//2)
+        return t_row, max(1, state.get_rows[t_row] // 2)
     else:
         return t_row, state.get_rows[t_row]
-
-
-# "MIRRORER" FAMILY ----------------------------------------------------------------------------------------------------
 
 
 def the_mirrorer(state: Nim, mirror_flags: tuple) -> tuple:
@@ -165,13 +171,11 @@ def the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple) -> tuple:
     """What the opponent takes in a row, this strategy leaves in a row"""
     opponent_clear_flag = opponent_clear_flag_o = reverse_mirror_flags[ROWS] - get_info(state)["remaining rows"]
     difference = generate_difference(reverse_mirror_flags[ARRAY], state.get_rows)
-    #difference = np.array(reverse_mirror_flags[ARRAY]) - np.array(state.get_rows)
     original_rows = [int(x) for x in state.get_rows]
     state.set_rows(original_rows)
     changed_row_index = np.argmax(difference)
     my_clear_flag = my_clear_flag_o = int(sum(difference) == 1)
     changing_factor = max(difference[changed_row_index], 1)
-    #changing_factor = 1 - state.get_rows[changed_row_index]/reverse_mirror_flags[ARRAY][changed_row_index]
     if opponent_clear_flag + my_clear_flag == 2:
         if bool(random.choice([PLAYER1, PLAYER2])):
             opponent_clear_flag = 0
@@ -203,9 +207,6 @@ def the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple) -> tuple:
     return (t_row, t_amount), reverse_mirror_flags
 
 
-# "BALANCER" -----------------------------------------------------------------------------------------------------------
-
-
 def the_balancer(state: Nim) -> tuple:
     target = sorted(set(state.get_rows))
     if len(target) < 2:
@@ -221,3 +222,26 @@ def the_balancer(state: Nim) -> tuple:
     if finishing_or_forced_move(state):
         return t_row, state.get_rows[t_row]
     return t_row, (state.get_rows[t_row] - target if can_balance else 1)
+
+
+def make_strategy(p: float) -> Callable:
+    def evolvable(state: Nim) -> tuple:
+        data = get_info(state)
+        if random.random() < p:
+            ply = (data["shortest_row"], random.randint(1, state.get_rows[data["shortest_row"]]))
+        else:
+            ply = (data["longest_row"], random.randint(1, state.get_rows[data["longest_row"]]))
+        return ply
+    return evolvable
+
+
+def finishing_or_forced_move(state):
+    return (get_info(state)["remaining rows"] == 1 and sum(state.get_rows) > 1) or \
+        get_info(state)["rows with more than 1"] == 0
+
+
+def generate_difference(list1, list2):
+    result = []
+    for i in range(len(list1)):
+        result.append(list1[i] - list2[i])
+    return result

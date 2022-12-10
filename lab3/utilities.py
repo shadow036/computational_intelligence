@@ -5,17 +5,9 @@ import numpy as np
 from itertools import accumulate
 from operator import xor
 
-from fixed_rules import THE_MIRRORER, THE_REVERSED_MIRRORER
-from fixed_rules import divergent, divergent_challenger, spreader, aggressive_spreader, nimsum_little_brother, \
-    optimal_strategy, pure_random, gabriele, make_strategy, dummy, divergent_triphase, the_balancer, the_mirrorer, \
-    random_spreader, the_reversed_mirrorer
-
-from evolving_agents import S_THE_REVERSED_MIRRORER
-from evolving_agents import s_divergent, s_the_balancer, s_the_reversed_mirrorer, s_gabriele, s_spreader, \
-    s_pure_random, s_nimsum_little_brother
-
-N_ROWS = 11
-N_MATCHES = 100
+N_ROWS = 6
+N_MATCHES = 10000
+LEARNING_TURNS = 100000
 K = None
 
 PLAYER1 = 0
@@ -28,6 +20,9 @@ WINS = 0
 TOTAL = 1
 
 CUSTOM = -1
+THE_MIRRORER = 14
+THE_REVERSED_MIRRORER = 16
+S_THE_REVERSED_MIRRORER = 19
 
 STRATEGIES = ['divergent', 'divergent_challenger', 'spreader', 'aggressive_spreader', 'nimsum_little_brother',
               'optimal_strategy',
@@ -37,6 +32,7 @@ STRATEGIES = ['divergent', 'divergent_challenger', 'spreader', 'aggressive_sprea
               's_divergent', 's_the_balancer', 's_the_reversed_mirrorer', 's_gabriele', 's_spreader',
               's_pure_random',
               's_nimsum_little_brother',
+              'reinforced',
 
               'custom'
               ]
@@ -119,27 +115,23 @@ def evaluate(strategies: list, n_rows, matches, indices=None, tournament=False, 
     my_win_rate = round(100 * sum(my_win_rates[WINS, :]) / matches)
     opponent_win_rate = 100 - my_win_rate
     if not tournament:
-        my_win_rate_starting_first = round(100 *
-                                           my_win_rates[WINS, STARTING_FIRST] / my_win_rates[TOTAL, STARTING_FIRST])
-        my_win_rate_starting_second = round(100 *
-                                            my_win_rates[WINS, STARTING_SECOND] / my_win_rates[TOTAL, STARTING_SECOND])
-        opponent_win_rate_starting_first = 100 - my_win_rate_starting_second
-        opponent_win_rate_starting_second = 100 - my_win_rate_starting_first
-        win_rate_starting_first = 100 * (my_win_rates[WINS, STARTING_FIRST] + my_win_rates[TOTAL, STARTING_SECOND] -
-                                         my_win_rates[WINS, STARTING_SECOND]) / matches
-        win_rate_starting_second = 100 * (my_win_rates[WINS, STARTING_SECOND] + my_win_rates[TOTAL, STARTING_FIRST] -
-                                          my_win_rates[WINS, STARTING_FIRST]) / matches
+        my_win_rate_starting_first = round(200 * my_win_rates[WINS, STARTING_FIRST] / matches, 3)
+        my_win_rate_starting_second = round(200 * my_win_rates[WINS, STARTING_SECOND] / matches, 3)
+        opponent_win_rate_starting_first = round(100 - my_win_rate_starting_second, 3)
+        opponent_win_rate_starting_second = round(100 - my_win_rate_starting_first, 3)
+        # win_rate_starting_first = 200 * my_win_rates[WINS, STARTING_FIRST] / matches
+        # win_rate_starting_second = 200 * my_win_rates[WINS, STARTING_SECOND] / matches
         print(f'\n{STRATEGIES[indices[PLAYER1]]} win rate: {my_win_rate}%')
         print(f'{STRATEGIES[indices[PLAYER1]]} win rate starting first: {my_win_rate_starting_first}%')
         print(f'{STRATEGIES[indices[PLAYER1]]} win rate starting second: {my_win_rate_starting_second}%')
         print(f'\n{STRATEGIES[indices[PLAYER2]]} win rate: {opponent_win_rate}%')
         print(f'{STRATEGIES[indices[PLAYER2]]} win rate starting first: {opponent_win_rate_starting_first}%')
         print(f'{STRATEGIES[indices[PLAYER2]]} win rate starting second: {opponent_win_rate_starting_second}%')
-        print(f'\nprobability of winning when starting first: {win_rate_starting_first}%')
-        print(f'probability of winning when starting second: {win_rate_starting_second}%\n')
+        # print(f'\nprobability of winning when starting first: {win_rate_starting_first}%')
+        # print(f'probability of winning when starting second: {win_rate_starting_second}%\n')
         return [my_win_rates, my_win_rate_starting_first, my_win_rate_starting_second], \
-            [opponent_win_rate, opponent_win_rate_starting_first, opponent_win_rate_starting_second], \
-            [win_rate_starting_first, win_rate_starting_second]
+            [opponent_win_rate, opponent_win_rate_starting_first, opponent_win_rate_starting_second]#, \
+            # [win_rate_starting_first, win_rate_starting_second]
     return my_win_rate > 50, opponent_win_rate > 50, sum(my_win_rates[WINS, :]), \
         my_win_rates[WINS, STARTING_FIRST], my_win_rates[WINS, STARTING_SECOND]
 
@@ -198,14 +190,3 @@ def run_tournament(strategies, k, matches):
 def nim_sum(state: Nim) -> int:
     *_, result = accumulate(state.get_rows, xor)
     return result
-
-
-def get_all_strategies():
-    strategies = [
-        divergent, divergent_challenger, spreader, aggressive_spreader, nimsum_little_brother, optimal_strategy,
-        pure_random, gabriele, make_strategy(0.1), make_strategy(0.5), make_strategy(0.9), dummy, divergent_triphase,
-        the_balancer, the_mirrorer, random_spreader, the_reversed_mirrorer,
-        s_divergent, s_the_balancer, s_the_reversed_mirrorer, s_gabriele, s_spreader, s_pure_random,
-        s_nimsum_little_brother
-    ]
-    return strategies

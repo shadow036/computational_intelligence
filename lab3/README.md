@@ -69,3 +69,9 @@ In the second exercise I tried to parametrize the strategies by giving to some o
 This parameter is used by all agents in "evolving_agents.py" and it is a value between 0 and 1. It affects the strategy of the agents by introducing a different behaviours based on the threshold p.
 As a simple form of mutation I just tried to generate other agents having the same "base" behaviour but adding a modification to the parameter p. \
 Unfortunately I couldn't complete the exercise but all the functions and the main ideas are present.
+
+## Exercise 3.3
+
+## Exercise 3.4
+
+Concerning the last exercise, I took inspiration from the 

@@ -1,10 +1,10 @@
 from utilities import Nim, get_info
+from utilities import PLAYER1, PLAYER2
+from strategies.fixed_rules import PACIFIST, AGGRESSIVE, ROWS, ARRAY
+from strategies.fixed_rules import finishing_or_forced_move, generate_difference
+from typing import Callable
 import random
 import numpy as np
-from fixed_rules import PACIFIST, AGGRESSIVE, ROWS, ARRAY
-from fixed_rules import finishing_or_forced_move, generate_difference
-from utilities import PLAYER1, PLAYER2
-from typing import Callable
 
 S_DIVERGENT = 17
 S_THE_BALANCER = 18

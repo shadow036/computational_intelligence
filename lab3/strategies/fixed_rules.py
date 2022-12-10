@@ -1,8 +1,9 @@
 import random
 import numpy as np
+from typing import Callable
 from utilities import Nim, get_info
 from utilities import PLAYER1, PLAYER2
-from typing import Callable
+
 
 PACIFIST = 0
 VIGILANT = 1
@@ -91,7 +92,7 @@ def nimsum_little_brother(state: Nim) -> tuple:
     reach the optimal situation for the actual min-sum"""
     info = get_info(state)
     if info["rows with more than 1"] == 1 and info["rows with 1"] % 2 == 0:  # trigger
-        t_row = np.argmax(state.get_rows)[0]
+        t_row = np.argmax(state.get_rows)
         return t_row, state.get_rows[t_row]
     choices = [i for i in range(state.get_nrows) if state.get_rows[i] > 1]  # setup
     if len(choices) == 0:
@@ -186,7 +187,7 @@ def the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple) -> tuple:
     elif bool(my_clear_flag):
         choices = [x for x in range(state.get_nrows) if state.get_rows[x] > 0]
     else:
-        choices = [x for x in range(state.get_nrows) if state.get_rows[x] > changing_factor + 1]
+        choices = [x for x in range(state.get_nrows) if state.get_rows[x] >= changing_factor + 1]
         if len(choices) == 0:
             choices = [x for x in range(state.get_nrows) if state.get_rows[x] > 1]
             if len(choices) == 0:
@@ -197,7 +198,7 @@ def the_reversed_mirrorer(state: Nim, reverse_mirror_flags: tuple) -> tuple:
     elif bool(opponent_clear_flag):
         t_amount = 1
     else:
-        t_amount = min(state.get_rows[t_row] - changing_factor, state.get_rows[t_row] - 1)
+        t_amount = max(state.get_rows[t_row] - changing_factor, 1)
     n_difference = [0 for _ in range(state.get_nrows)]
     n_difference[t_row] += t_amount
     reverse_mirror_flags = [reverse_mirror_flags[ROWS] - opponent_clear_flag_o - my_clear_flag_o,

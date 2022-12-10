@@ -12,6 +12,9 @@ from strategies.fixed_rules import PURE_RANDOM, NIMSUM_LITTLE_BROTHER, OPTIMAL_S
 from strategies.evolving_agents import s_divergent, s_the_balancer, s_the_reversed_mirrorer, \
     s_gabriele, s_spreader, s_pure_random, s_nimsum_little_brother
 
+from strategies.min_max import Node
+from strategies.min_max import MY_TURN, OPPONENT_TURN
+
 from strategies.reinforcement import Agent, REINFORCEMENT
 from strategies.reinforcement import get_possible_actions, evaluate_state, make_hashable, show_learning_progress, \
     choose_best_action
@@ -47,8 +50,13 @@ if __name__ == '__main__':
             target = randint(0, len(strategies) - 1)
             new_s = substrategies_mutation(STRATEGIES[target], 0, strategies[target])
         new_pool.append(new_s)"""
+    # MIN MAX ----------------------------------------------------------------------------------------------------------
+    initial_state = Nim(N_ROWS).get_rows
+    minmax = [Node(initial_state, MY_TURN), Node(initial_state, OPPONENT_TURN)]
+    for node in minmax:
+        node.propagate_backwards()
     # REINFORCEMENT ----------------------------------------------------------------------------------------------------
-    history = []
+    """history = []
     opponent = THE_REVERSED_MIRRORER
     print(f'Learning progress vs {STRATEGIES[opponent]}')
     old = -1
@@ -82,4 +90,4 @@ if __name__ == '__main__':
                     ply = strategies[opponent](environment)
                 environment.nimming(ply)
         agent.learn()
-    evaluate(strategies, N_ROWS, N_MATCHES, indices=(REINFORCEMENT, opponent))
+    evaluate(strategies, N_ROWS, N_MATCHES, indices=(REINFORCEMENT, opponent))"""

@@ -4,8 +4,9 @@ from copy import deepcopy
 import numpy as np
 from itertools import accumulate
 from operator import xor
+from strategies.min_max import MINMAX, MinMax
 
-N_ROWS = 2
+N_ROWS = 4
 N_MATCHES = 10000
 LEARNING_TURNS = 100000
 K = None
@@ -33,6 +34,7 @@ STRATEGIES = ['divergent', 'divergent_challenger', 'spreader', 'aggressive_sprea
               's_pure_random',
               's_nimsum_little_brother',
               'reinforced',
+              'min_max',
 
               'custom'
               ]
@@ -76,7 +78,7 @@ class Nim:
         self.rows[row] -= num_objects
 
 
-def evaluate(strategies: list, n_rows, matches, indices=None, tournament=False, players=None):
+def evaluate(strategies: list, n_rows, matches, indices=None, tournament=False, players=None, minmax_reset=None):
     logging.getLogger().setLevel(logging.DEBUG)
     if players is None:
         strategies = (strategies[indices[PLAYER1]], strategies[indices[PLAYER2]])
@@ -109,6 +111,8 @@ def evaluate(strategies: list, n_rows, matches, indices=None, tournament=False, 
         if not tournament:
             logging. \
                 info(f"status: {STRATEGIES[indices[winner]]} won!")
+        if MINMAX in indices:
+            minmax_reset.reset_minmax()
         my_win_rates[WINS, int(starting_player == PLAYER1)] += int(winner == PLAYER1)
         my_win_rates[TOTAL, int(starting_player == PLAYER1)] += 1
         starting_player = 1 - starting_player

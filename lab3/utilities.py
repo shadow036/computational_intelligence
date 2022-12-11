@@ -6,7 +6,7 @@ from itertools import accumulate
 from operator import xor
 from strategies.min_max import MINMAX, MinMax
 
-N_ROWS = 4
+N_ROWS = 6
 N_MATCHES = 10000
 LEARNING_TURNS = 100000
 K = None

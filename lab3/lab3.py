@@ -24,8 +24,8 @@ import numpy as np
 
 if __name__ == '__main__':
     agent = Agent(N_ROWS)
-    minmax = MinMax(N_ROWS, MY_TURN)
-    minmax.add_actions_nodesRewards()
+    #minmax = MinMax(N_ROWS, MY_TURN)
+    #minmax.add_actions_nodesRewards()
 
     strategies = [divergent, divergent_challenger, spreader, aggressive_spreader, nimsum_little_brother,
                   optimal_strategy, pure_random, gabriele, make_strategy(0.1), make_strategy(0.5), make_strategy(0.9),
@@ -35,8 +35,8 @@ if __name__ == '__main__':
                   s_pure_random,
                   s_nimsum_little_brother,
 
-                  agent.play,
-                  minmax.play
+                  agent.play#,
+                  #minmax.play
                   ]
     # FIXED RULES ------------------------------------------------------------------------------------------------------
     """strategies = get_all_strategies()
@@ -55,11 +55,11 @@ if __name__ == '__main__':
             new_s = substrategies_mutation(STRATEGIES[target], 0, strategies[target])
         new_pool.append(new_s)"""
     # MIN MAX ----------------------------------------------------------------------------------------------------------
-    minmax.visualize_tree()
-    evaluate(strategies, N_ROWS, N_MATCHES, indices=(MINMAX, SPREADER), minmax_reset=minmax)
+    """minmax.visualize_tree()
+    evaluate(strategies, N_ROWS, N_MATCHES, indices=(MINMAX, SPREADER), minmax_reset=minmax)"""
     # REINFORCEMENT ----------------------------------------------------------------------------------------------------
-    """history = []
-    opponent = PURE_RANDOM
+    history = []
+    opponent = SPREADER
     print(f'Learning progress vs {STRATEGIES[opponent]}')
     old = -1
     for turn in range(LEARNING_TURNS):
@@ -92,5 +92,5 @@ if __name__ == '__main__':
                     ply = strategies[opponent](environment)
                 environment.nimming(ply)
         agent.learn()
-        minmax.reset_minmax()
-    evaluate(strategies, N_ROWS, N_MATCHES, indices=(REINFORCEMENT, opponent), minmax_reset=minmax)"""
+        #minmax.reset_minmax()
+    evaluate(strategies, N_ROWS, N_MATCHES, indices=(REINFORCEMENT, opponent))#, minmax_reset=minmax)

@@ -71,7 +71,20 @@ As a simple form of mutation I just tried to generate other agents having the sa
 Unfortunately I couldn't complete the exercise but all the functions and the main ideas are present.
 
 ## Exercise 3.3
+The "min-max" strategy I developed works pretty well but due to the absence of computational optimizations (alpha-beta pruning or hash tables) it is highly inefficient for all situations where N > 3. \
+Still the idea behind the code seems ok due to the tests I made with N = 3. \
+I tried to implement from scratch the tree containing the various states with the related "backpropagation" algorithm of the final scores. \
+I also tried a new version which used a made-up hash table (which was actually a dictionary having the board and the turn as the key) but with that other problems arose.
 
 ## Exercise 3.4
+Concerning the last exercise, I took inspiration from the maze example but of course I had to modify the logic behind that in order to adapt it to the new context. \
+The most important difference is the one regarding the penalties. \
+In addition to giving a penalty for each step that doeesn't conclude the game, I also added some positive and negative rewards when the agent is in a position that leads to certain victory or defeat 
+In fact in the evaluation phase I set to 0 the penalty for reaching a state that leads to certain victory and in this case the cumulative reward will remain constant for the rest of the game. On the other hand I gave a -10 penalty for reaching a position that will make the agent lose (this -10 penalty will be cumulative until the end of the game, i.e. if the agent reaches a losing position 10 own turns before the end of the game, at the end this will cost the agent at least -100 penalty point).
+The rest of the code remains the same, except some other small modifications, namely: \
+- in line 35, 36, 37 I initialized the initial thuth value for the last move to -10 if the game was lost
+- some modifications were added in order to ensure compatibility with the rest of the code
+- I used a function which simulates the outcome each possible action in order to make the best decision (with respect to the agent's beliefs, it's not just brute force) \
 
-Concerning the last exercise, I took inspiration from the 
+The final results seems quite good, with a lot of training games (100000), the agent is able to defeat almost all opponents during the 10000 test matches, except for the optimal strategy which is still difficult to even get a single win against it. \
+On average it seems that it is able to deal with relative high N (in the range of 6 - 7).
